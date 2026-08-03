@@ -1,6 +1,8 @@
 # DataHop downloads
 
-This repository hosts official binary releases of DataHop, a local-first PostgreSQL desktop explorer.
+This repository hosts the public landing page and official binary releases of DataHop, a local-first PostgreSQL desktop explorer.
+
+Visit [datahop.vercel.app](https://datahop.vercel.app) to learn more.
 
 ## Download
 
@@ -17,4 +19,4 @@ shasum -a 256 -c SHA256SUMS.txt
 
 ## About this repository
 
-This is a binary-only distribution repository. It contains release artifacts and release notes, not the DataHop source code.
+This is a distribution repository. It contains the public landing page, release artifacts, and release notes—not the DataHop application source code.

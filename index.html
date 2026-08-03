@@ -1,0 +1,2586 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f4ef" />
+    <meta
+      name="description"
+      content="DataHop is a local-first PostgreSQL desktop explorer. Find records, follow foreign keys, filter visually, and drop into SQL when you need it."
+    />
+    <link rel="icon" href="./assets/datahop-mark.svg" />
+    <title>DataHop — See the full story behind every record</title>
+    <style>
+      :root {
+        --ink: #18201c;
+        --ink-2: #344039;
+        --muted: #67716b;
+        --green-950: #102b20;
+        --green-900: #173a2c;
+        --green-800: #244d3b;
+        --green-700: #315f49;
+        --green: #3f755f;
+        --green-500: #5e927b;
+        --green-200: #cce0d5;
+        --mint: #e1ece6;
+        --mint-2: #eef1ec;
+        --paper: #f4f4ef;
+        --white: #ffffff;
+        --line: #d8ddd8;
+        --line-dark: rgba(255, 255, 255, 0.12);
+        --amber: #dcad52;
+        --red: #ce6d61;
+        --blue: #668eb0;
+        --shadow-sm: 0 10px 35px rgba(18, 48, 35, 0.08);
+        --shadow-lg: 0 30px 90px rgba(15, 45, 31, 0.18);
+        --radius-sm: 10px;
+        --radius: 18px;
+        --radius-lg: 28px;
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(
+            circle at 10% 2%,
+            rgba(63, 117, 95, 0.09),
+            transparent 24rem
+          ),
+          linear-gradient(180deg, #f4f4ef 0%, #fbfbf8 34%, #f4f4ef 100%);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      svg {
+        display: block;
+      }
+
+      .noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 100;
+        opacity: 0.035;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      }
+
+      .container {
+        width: min(calc(100% - 36px), var(--max));
+        margin-inline: auto;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--green-700);
+      }
+      .eyebrow::before {
+        content: "";
+        width: 18px;
+        height: 1px;
+        background: currentColor;
+      }
+
+      .nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 14px 0 0;
+      }
+      nav {
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 10px 12px 10px 16px;
+        border: 1px solid rgba(54, 93, 73, 0.11);
+        background: rgba(250, 252, 250, 0.82);
+        backdrop-filter: blur(18px);
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(24, 57, 42, 0.07);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-weight: 780;
+        letter-spacing: -0.03em;
+      }
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--surface, #fbfbf8);
+        display: grid;
+        place-items: center;
+        box-shadow:
+          inset 0 0 0 1px rgba(63, 117, 95, 0.13),
+          0 7px 18px rgba(63, 117, 95, 0.12);
+      }
+      .brand-mark img {
+        width: 27px;
+        height: 27px;
+        display: block;
+      }
+      .brand span {
+        font-size: 17px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 620;
+      }
+      .nav-links a:hover {
+        color: var(--green-800);
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 46px;
+        border-radius: 12px;
+        padding: 0 17px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-weight: 720;
+        font-size: 14px;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease,
+          border-color 0.18s ease;
+      }
+      .button:hover {
+        transform: translateY(-2px);
+      }
+      .button.primary {
+        color: white;
+        background: var(--green-900);
+        box-shadow: 0 12px 28px rgba(23, 58, 44, 0.22);
+      }
+      .button.primary:hover {
+        background: var(--green-800);
+        box-shadow: 0 16px 34px rgba(23, 58, 44, 0.26);
+      }
+      .button.secondary {
+        background: rgba(255, 255, 255, 0.76);
+        border-color: var(--line);
+        color: var(--ink-2);
+      }
+      .button.secondary:hover {
+        border-color: #c5d8cd;
+        background: white;
+      }
+      .button.small {
+        min-height: 42px;
+        padding-inline: 14px;
+      }
+
+      .hero {
+        padding: 86px 0 76px;
+        position: relative;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        width: 540px;
+        height: 540px;
+        border: 1px solid rgba(63, 118, 95, 0.1);
+        border-radius: 50%;
+        top: -170px;
+        right: -160px;
+        box-shadow:
+          0 0 0 90px rgba(63, 118, 95, 0.025),
+          0 0 0 180px rgba(63, 118, 95, 0.018);
+        pointer-events: none;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 52px;
+      }
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        max-width: 920px;
+        margin-inline: auto;
+        text-align: center;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid #d1e2d8;
+        background: rgba(234, 242, 238, 0.8);
+        color: var(--green-800);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 720;
+      }
+      .pulse-dot {
+        width: 7px;
+        height: 7px;
+        background: #4d9a73;
+        border-radius: 50%;
+        box-shadow: 0 0 0 5px rgba(77, 154, 115, 0.12);
+      }
+      h1 {
+        max-width: 920px;
+        margin: 22px auto 20px;
+        font-size: clamp(48px, 6.4vw, 78px);
+        line-height: 0.98;
+        letter-spacing: -0.065em;
+        font-weight: 790;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--green);
+      }
+      .hero-copy > p {
+        max-width: 720px;
+        margin: 0 auto;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--muted);
+        letter-spacing: -0.01em;
+      }
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 30px;
+      }
+      .download-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 19px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .download-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .download-meta span + span::before {
+        content: "";
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: #a8b5ad;
+        margin-right: 10px;
+      }
+
+      .app-stage {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        overflow: visible;
+        padding: 3px 3px 24px;
+        perspective: 1400px;
+        scrollbar-width: thin;
+        scrollbar-color: #bfc8c1 transparent;
+      }
+      .app-stage::after {
+        display: none;
+      }
+      .app-window {
+        position: relative;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        border-radius: 24px;
+        overflow: visible;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        transform: none;
+        transform-origin: center;
+        transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .app-screenshot {
+        display: block;
+        width: 100%;
+        height: auto;
+        user-select: none;
+        filter: drop-shadow(0 30px 34px rgba(15, 45, 31, 0.17))
+          drop-shadow(0 10px 14px rgba(15, 45, 31, 0.11));
+      }
+      .app-stage:hover .app-window {
+        transform: translateY(-3px);
+      }
+      kbd {
+        border: 1px solid #cfdbd4;
+        background: #f4f7f5;
+        border-bottom-width: 2px;
+        border-radius: 6px;
+        padding: 2px 7px;
+        font-size: 10px;
+        font-family: inherit;
+        color: var(--ink-2);
+      }
+
+      .section {
+        padding: 110px 0;
+      }
+      .section-head {
+        max-width: 690px;
+        margin-bottom: 52px;
+      }
+      .section-head h2 {
+        font-size: clamp(38px, 5vw, 60px);
+        line-height: 1.03;
+        letter-spacing: -0.052em;
+        margin: 14px 0 18px;
+      }
+      .section-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.7;
+      }
+
+      .bento {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-auto-rows: minmax(230px, auto);
+        gap: 16px;
+      }
+      .feature-card {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.8);
+        overflow: hidden;
+        box-shadow: 0 15px 45px rgba(22, 61, 42, 0.055);
+      }
+      .feature-card.large {
+        grid-column: span 7;
+        min-height: 430px;
+      }
+      .feature-card.tall {
+        grid-column: span 5;
+        min-height: 430px;
+      }
+      .feature-card.third {
+        grid-column: span 4;
+        min-height: 380px;
+      }
+      .feature-card.wide {
+        grid-column: span 12;
+        min-height: 245px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 0.9fr);
+        align-items: center;
+      }
+      .feature-copy {
+        position: relative;
+        z-index: 2;
+        padding: 30px;
+      }
+      .feature-number {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--green);
+        letter-spacing: 0.1em;
+      }
+      .feature-copy h3 {
+        font-size: 24px;
+        letter-spacing: -0.035em;
+        margin: 10px 0 9px;
+      }
+      .feature-copy p {
+        max-width: 460px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      .local-first-visual {
+        position: relative;
+        min-height: 170px;
+        margin: 26px;
+        display: grid;
+        grid-template-columns: 1fr 90px 1fr;
+        align-items: center;
+        gap: 0;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #f6f7f3;
+        text-align: center;
+      }
+      .local-first-visual span,
+      .local-first-visual strong {
+        position: relative;
+        z-index: 1;
+        padding: 15px 10px;
+        border: 1px solid #cfd9d2;
+        border-radius: 9px;
+        background: white;
+        color: var(--ink-2);
+        font-size: 11px;
+        box-shadow: 0 8px 20px rgba(20, 28, 23, 0.07);
+      }
+      .local-first-visual strong {
+        color: var(--green-800);
+      }
+      .local-first-visual i {
+        height: 2px;
+        background: linear-gradient(90deg, var(--green-200), var(--green));
+      }
+      .local-first-visual small {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 12px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+
+      .relation-visual {
+        position: absolute;
+        inset: 148px 26px 25px;
+        display: grid;
+        grid-template-columns: 1fr 82px 1fr;
+        align-items: center;
+      }
+      .relation-node {
+        position: relative;
+        border: 1px solid #d7e3dc;
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 16px 40px rgba(17, 55, 35, 0.1);
+        overflow: hidden;
+      }
+      .relation-node-head {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 38px;
+        padding: 0 11px;
+        border-bottom: 1px solid #e5ebe7;
+        color: #34443a;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .relation-node-head span {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        background: #e8f2ec;
+        color: var(--green-700);
+      }
+      .relation-node-row {
+        display: grid;
+        grid-template-columns: 68px 1fr;
+        gap: 8px;
+        padding: 8px 11px;
+        border-bottom: 1px solid #eef2ef;
+        color: #76837b;
+        font-size: 9px;
+      }
+      .relation-node-row:last-child {
+        border-bottom: 0;
+      }
+      .relation-node-row b {
+        color: #34443a;
+        font-weight: 700;
+      }
+      .relation-node-row.highlight {
+        background: #f0f7f3;
+        color: #337154;
+      }
+      .relation-bridge {
+        position: relative;
+        height: 100%;
+        display: grid;
+        place-items: center;
+      }
+      .relation-bridge::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        height: 2px;
+        background: linear-gradient(90deg, #b9d2c4, #4c8b6c);
+      }
+      .relation-bridge::after {
+        content: "";
+        position: absolute;
+        right: 7px;
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid #4c8b6c;
+        border-right: 2px solid #4c8b6c;
+        transform: rotate(45deg);
+      }
+      .relation-bridge span {
+        position: relative;
+        z-index: 1;
+        padding: 5px 7px;
+        border-radius: 999px;
+        background: var(--green-900);
+        color: white;
+        box-shadow: 0 8px 18px rgba(23, 58, 44, 0.2);
+        font-size: 8px;
+        font-weight: 800;
+      }
+
+      .quick-jump-card {
+        min-height: 500px !important;
+        display: flex;
+        flex-direction: column;
+      }
+      .mini-command {
+        margin: auto 24px 24px;
+        border-radius: 12px;
+        border: 1px solid #d6e2db;
+        background: #fff;
+        box-shadow: 0 18px 42px rgba(18, 54, 37, 0.12);
+        overflow: hidden;
+      }
+      .mini-command-input {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        border-bottom: 1px solid #e6ece8;
+        color: #829087;
+        font-size: 11px;
+      }
+      .mini-command-input > span:nth-child(2) {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .mini-command-input kbd {
+        padding: 2px 6px;
+        font-size: 8px;
+      }
+      .mini-command-section {
+        padding: 10px 13px 4px;
+        color: #929d96;
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .mini-command-row {
+        min-width: 0;
+        min-height: 48px;
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        margin: 3px 6px;
+        padding: 5px 9px;
+        border-radius: 7px;
+        color: #536158;
+        transition: 0.18s ease;
+      }
+      .mini-command-row:hover,
+      .mini-command-row.selected {
+        background: var(--mint);
+        color: var(--green-900);
+      }
+      .mini-command-icon {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        background: #f2f5f3;
+        color: var(--green-800);
+        font-size: 13px;
+      }
+      .mini-command-row.selected .mini-command-icon {
+        background: #e3eee8;
+      }
+      .mini-command-details {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+      .mini-command-name {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .mini-command-name strong {
+        overflow: hidden;
+        color: #202b25;
+        font-size: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .mini-command-name em {
+        flex: 0 0 auto;
+        padding: 2px 6px;
+        border: 1px solid #79b4df;
+        border-radius: 999px;
+        background: #edf6fc;
+        color: #3384bd;
+        font-size: 7px;
+        font-style: normal;
+        font-weight: 750;
+      }
+      .mini-command-details small {
+        color: #929d96;
+        font-size: 8px;
+      }
+      .mini-command-enter {
+        color: #919d96;
+        font-size: 11px;
+      }
+      .mini-command-divider {
+        height: 1px;
+        margin: 6px 10px 0;
+        background: #e1e7e3;
+      }
+      .mini-command-row kbd {
+        font-size: 8px;
+      }
+
+      .profile-stack-visual {
+        position: absolute;
+        inset: 145px 22px 22px;
+      }
+      .profile-card {
+        position: absolute;
+        left: 50%;
+        width: 78%;
+        padding: 17px;
+        border: 1px solid #d7e3dc;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 18px 40px rgba(20, 57, 39, 0.12);
+        transform-origin: center bottom;
+      }
+      .profile-card:nth-child(1) {
+        transform: translate(-50%, 5px) rotate(-6deg);
+        opacity: 0.48;
+      }
+      .profile-card:nth-child(2) {
+        transform: translate(-50%, 20px) rotate(5deg);
+        opacity: 0.68;
+      }
+      .profile-card:nth-child(3) {
+        transform: translate(-50%, 35px);
+      }
+      .profile-card-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .profile-card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--mint);
+        color: var(--green);
+        display: grid;
+        place-items: center;
+      }
+      .profile-card strong {
+        display: block;
+        font-size: 12px;
+      }
+      .profile-card small {
+        color: #89958e;
+        font-size: 9px;
+      }
+      .profile-card .online {
+        margin-left: auto;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #5caf7d;
+        box-shadow: 0 0 0 5px rgba(92, 175, 125, 0.11);
+      }
+
+      .connections-card {
+        min-height: 470px !important;
+        display: flex;
+        flex-direction: column;
+      }
+      .connection-switcher {
+        margin: auto 24px 24px;
+        padding: 6px;
+        border: 1px solid #d4ddd7;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 15px 34px rgba(20, 57, 39, 0.1);
+      }
+      .connection-option {
+        min-width: 0;
+        min-height: 50px;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) 18px;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 9px;
+        border-radius: 7px;
+        color: #647169;
+        transition: 0.18s ease;
+      }
+      .connection-option:hover {
+        background: #f2f6f3;
+      }
+      .connection-option.selected {
+        background: #e9f1ed;
+        color: #233a30;
+      }
+      .connection-monogram {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1.5px solid #3485bf;
+        border-radius: 10px;
+        background: white;
+        color: #3485bf;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .connection-monogram.dev {
+        border-color: #8e3bd0;
+        color: #8e3bd0;
+      }
+      .connection-monogram.prod {
+        border-color: var(--green);
+        color: var(--green-800);
+      }
+      .connection-details {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+      .connection-details strong {
+        color: inherit;
+        font-size: 11px;
+      }
+      .connection-details small {
+        min-width: 0;
+        overflow: hidden;
+        color: #748179;
+        font-size: 8px;
+        font-weight: 650;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .connection-details small::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        display: inline-block;
+        margin-right: 5px;
+        border-radius: 50%;
+        background: #739784;
+      }
+      .connection-check {
+        color: var(--green-800);
+        font-size: 15px;
+      }
+      .connection-add {
+        min-height: 39px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-top: 5px;
+        padding: 5px 11px;
+        border-top: 1px solid #e0e6e2;
+        color: #69766e;
+        font-size: 10px;
+      }
+      .connection-add span {
+        color: #536159;
+        font-size: 18px;
+        font-weight: 300;
+      }
+
+      .relationships-card {
+        min-height: 470px !important;
+        display: flex;
+        flex-direction: column;
+      }
+      .row-relations-panel {
+        margin: auto 24px 24px;
+        padding: 13px;
+        border: 1px solid #d7e0da;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 15px 34px rgba(20, 57, 39, 0.09);
+      }
+      .row-relations-title {
+        display: block;
+        margin-bottom: 10px;
+        color: #24312a;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .row-relations-label {
+        display: block;
+        margin: 9px 0 5px;
+        color: #95a099;
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .row-relation-item {
+        min-width: 0;
+        min-height: 41px;
+        display: grid;
+        grid-template-columns: 29px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+        padding: 6px 8px;
+        border: 1px solid #e0e6e2;
+        border-radius: 6px;
+        color: #536159;
+        transition: 0.18s ease;
+      }
+      .row-relation-item:hover {
+        border-color: #b9cec1;
+        background: #f8fbf9;
+        transform: translateY(-1px);
+      }
+      .row-relation-mark {
+        width: 29px;
+        height: 29px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        background: #eaf2ee;
+        color: var(--green-800);
+        font-size: 11px;
+      }
+      .row-relation-details {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+      .row-relation-details strong,
+      .row-relation-details small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .row-relation-details strong {
+        color: #27342d;
+        font-size: 9px;
+      }
+      .row-relation-details small {
+        color: #8b9790;
+        font-size: 7px;
+      }
+      .row-relation-end {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #314039;
+        font-size: 12px;
+      }
+      .row-relation-count {
+        min-width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #eaf2ee;
+        color: var(--green-800);
+        font-size: 10px;
+      }
+
+      .micro-ui {
+        margin: 20px 24px 0;
+        border: 1px solid #dde6e0;
+        background: #f9fbfa;
+        border-radius: 13px;
+        overflow: hidden;
+      }
+      .micro-ui-bar {
+        height: 34px;
+        border-bottom: 1px solid #e2e9e4;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0 10px;
+      }
+      .micro-ui-bar i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #d7dfda;
+      }
+      .micro-ui-line {
+        height: 9px;
+        border-radius: 10px;
+        background: #dfe8e3;
+        margin: 11px;
+      }
+      .micro-ui-line:nth-child(3) {
+        width: 60%;
+      }
+      .micro-ui-line:nth-child(4) {
+        width: 78%;
+      }
+      .micro-ui-line:nth-child(5) {
+        width: 45%;
+      }
+
+      .dark-band {
+        padding: 110px 0;
+        background: var(--green-950);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      .dark-band::before {
+        content: "";
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        right: -130px;
+        top: -230px;
+        box-shadow:
+          0 0 0 100px rgba(255, 255, 255, 0.018),
+          0 0 0 200px rgba(255, 255, 255, 0.012);
+      }
+      .flow-grid {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 80px;
+        align-items: center;
+        position: relative;
+      }
+      .flow-copy h2 {
+        font-size: clamp(38px, 5vw, 60px);
+        line-height: 1.03;
+        letter-spacing: -0.052em;
+        margin: 14px 0 20px;
+      }
+      .flow-copy p {
+        color: #aabeb3;
+        font-size: 16px;
+        line-height: 1.75;
+      }
+      .flow-copy .eyebrow {
+        color: #91b9a5;
+      }
+      .flow-steps {
+        position: relative;
+        padding: 8px 18px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.045);
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.14);
+      }
+      .flow-steps::before {
+        content: "";
+        position: absolute;
+        top: 72px;
+        bottom: 38px;
+        left: 41px;
+        width: 1px;
+        background: linear-gradient(
+          180deg,
+          rgba(143, 197, 171, 0.25),
+          rgba(143, 197, 171, 0.7),
+          rgba(143, 197, 171, 0.25)
+        );
+      }
+      .flow-path-head {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5px 0 58px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #f0f7f3;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .flow-path-head small {
+        color: #b8cdc2;
+        font-size: 8px;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .flow-step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) minmax(118px, auto);
+        align-items: center;
+        gap: 15px;
+        min-height: 84px;
+        padding: 13px 5px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.085);
+      }
+      .flow-step:last-child {
+        border-bottom: 0;
+      }
+      .flow-step-icon {
+        position: relative;
+        z-index: 1;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        color: #e1f0e8;
+        background: #1a4936;
+        border: 1px solid rgba(152, 218, 185, 0.36);
+        font-size: 9px;
+      }
+      .flow-step strong {
+        display: block;
+        color: #f2f8f5;
+        font-size: 14px;
+      }
+      .flow-step span {
+        color: #bdcec5;
+        font-size: 11px;
+      }
+      .flow-artifact {
+        min-width: 118px;
+        max-width: 156px;
+        display: grid;
+        gap: 2px;
+        justify-self: end;
+        padding: 8px 10px;
+        border: 1px solid rgba(194, 222, 207, 0.24);
+        border-radius: 8px;
+        background: rgba(5, 24, 16, 0.28);
+        color: #eef6f2;
+        font-size: 9px;
+      }
+      .flow-artifact b {
+        overflow: hidden;
+        color: #f4faf7;
+        font-size: 9px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .flow-artifact small {
+        overflow: hidden;
+        color: #b1c8bc;
+        font-size: 8px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .flow-artifact kbd {
+        width: max-content;
+        margin-bottom: 1px;
+        border-color: rgba(190, 218, 204, 0.32);
+        background: rgba(255, 255, 255, 0.1);
+        color: #f3f8f5;
+        font-size: 8px;
+      }
+
+      .download {
+        padding: 120px 0 130px;
+      }
+      .download-card {
+        text-align: center;
+        padding: 80px 24px;
+        border-radius: 30px;
+        color: white;
+        background:
+          radial-gradient(
+            circle at 15% 10%,
+            rgba(117, 186, 151, 0.25),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 85% 90%,
+            rgba(117, 186, 151, 0.13),
+            transparent 28%
+          ),
+          var(--green-900);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 35px 90px rgba(22, 57, 41, 0.25);
+      }
+      .download-card::after {
+        content: "";
+        position: absolute;
+        inset: 18px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+      }
+      .download-logo {
+        width: 66px;
+        height: 66px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 26px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 18px;
+      }
+      .download-logo img {
+        width: 46px;
+        height: 46px;
+        filter: brightness(0) invert(1);
+      }
+      .download-card h2 {
+        font-size: clamp(40px, 6vw, 68px);
+        line-height: 1;
+        letter-spacing: -0.055em;
+        margin: 0 auto 18px;
+        max-width: 760px;
+      }
+      .download-card p {
+        color: #b7c9bf;
+        max-width: 600px;
+        margin: 0 auto;
+        font-size: 17px;
+      }
+      .download-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+        position: relative;
+        z-index: 2;
+      }
+      .download-card .button.primary {
+        color: var(--green-950);
+        background: white;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+      }
+      .download-card .button.primary:hover {
+        background: #f2f7f4;
+      }
+      .download-card .button.secondary {
+        color: #d7e6de;
+        background: rgba(255, 255, 255, 0.055);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+      .download-note {
+        margin-top: 15px;
+        color: #88a395;
+        font-size: 11px;
+      }
+
+      footer {
+        padding: 0 0 38px;
+      }
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        justify-content: space-between;
+        padding-top: 30px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .footer-inner .brand {
+        color: var(--ink);
+      }
+      .footer-links {
+        display: flex;
+        gap: 24px;
+      }
+
+      .command-backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 90;
+        overflow: hidden;
+        border-radius: 24px;
+        background: rgba(10, 28, 20, 0.44);
+        backdrop-filter: blur(7px);
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.18s ease;
+      }
+      .command-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .command-modal {
+        position: absolute;
+        top: clamp(28px, 6vw, 90px);
+        left: var(--overlay-center-x, 50%);
+        width: var(--overlay-width, min(720px, calc(100% - 28px)));
+        background: white;
+        border: 1px solid rgba(40, 80, 60, 0.18);
+        border-radius: 12px;
+        box-shadow: 0 35px 100px rgba(5, 26, 15, 0.35);
+        overflow: hidden;
+        transform: translate(-50%, -14px) scale(0.98);
+        transition: 0.18s ease;
+      }
+      .command-backdrop.open .command-modal {
+        transform: translate(-50%, 0) scale(1);
+      }
+      .command-input {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 17px;
+        border-bottom: 1px solid #e5ebe7;
+      }
+      .command-input input {
+        flex: 1;
+        border: 0;
+        outline: 0;
+        font-size: 15px;
+        color: var(--ink);
+      }
+      .command-list {
+        padding: 7px 8px 10px;
+        max-height: 420px;
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+      }
+      .command-group + .command-group {
+        margin-top: 7px;
+        padding-top: 7px;
+        border-top: 1px solid #e5ebe7;
+      }
+      .command-group[hidden] {
+        display: none;
+      }
+      .command-section {
+        padding: 7px 11px 5px;
+        color: #8a958f;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 800;
+      }
+      .command-item {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+        gap: 11px;
+        align-items: center;
+        width: 100%;
+        min-height: 56px;
+        padding: 7px 11px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        color: #34433a;
+      }
+      .command-item:hover,
+      .command-item.active {
+        background: var(--mint);
+        color: var(--green-900);
+      }
+      .command-item-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+        background: #f2f6f3;
+        color: var(--green);
+      }
+      .command-item-copy {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+      .command-item-title {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .command-item strong {
+        overflow: hidden;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .command-item small {
+        overflow: hidden;
+        color: #87938c;
+        font-size: 9px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .command-badge {
+        flex: 0 0 auto;
+        padding: 2px 7px;
+        border: 1px solid #7cb7e0;
+        border-radius: 999px;
+        background: #edf6fc;
+        color: #3485bf;
+        font-size: 8px;
+        font-weight: 760;
+      }
+      .command-badge.prod {
+        border-color: #78a793;
+        background: #eff5f2;
+        color: #3d775f;
+      }
+      .command-badge.local {
+        border-color: #9ab8aa;
+        background: #f1f5f3;
+        color: #517261;
+      }
+      .command-item kbd {
+        font-size: 8px;
+      }
+      .command-enter {
+        color: #929d96;
+        font-size: 12px;
+      }
+      .command-empty {
+        display: none;
+        padding: 35px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (max-width: 1040px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero-copy {
+          text-align: center;
+        }
+        .hero-copy > p,
+        h1 {
+          margin-inline: auto;
+        }
+        .hero-actions,
+        .download-meta {
+          justify-content: center;
+        }
+        .app-stage {
+          width: 100%;
+          overflow-x: auto;
+          padding: 16px 16px 44px;
+          margin: 20px auto 0;
+        }
+        .app-window {
+          margin: auto;
+          transform: none;
+        }
+        .flow-grid {
+          grid-template-columns: 1fr;
+          gap: 44px;
+        }
+      }
+
+      @media (max-width: 780px) {
+        .nav-links {
+          display: none;
+        }
+        .nav-wrap {
+          padding-top: 8px;
+        }
+        nav {
+          min-height: 58px;
+        }
+        .hero {
+          padding-top: 66px;
+        }
+        h1 {
+          font-size: clamp(46px, 14vw, 68px);
+        }
+        .hero-copy > p {
+          font-size: 16px;
+        }
+        .app-window {
+          min-width: 0;
+        }
+        .app-stage {
+          overflow: auto;
+          padding-bottom: 40px;
+          margin-inline: -18px;
+          padding-inline: 18px;
+        }
+        .command-modal {
+          top: 14px;
+        }
+        .command-input {
+          height: 48px;
+        }
+        .command-list {
+          max-height: clamp(130px, 28vw, 260px);
+        }
+        .section {
+          padding: 84px 0;
+        }
+        .feature-card.large,
+        .feature-card.tall,
+        .feature-card.third {
+          grid-column: span 12;
+        }
+        .feature-card.wide {
+          grid-column: span 12;
+          grid-template-columns: 1fr;
+        }
+        .relation-visual {
+          grid-template-columns: 1fr 64px 1fr;
+        }
+        .footer-inner {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .container {
+          width: min(calc(100% - 24px), var(--max));
+        }
+        .nav-download {
+          width: 42px;
+          padding: 0;
+        }
+        .nav-download span {
+          display: none;
+        }
+        .hero-actions {
+          flex-direction: column;
+        }
+        .hero-actions .button {
+          width: 100%;
+        }
+        .download-meta {
+          gap: 7px;
+          flex-wrap: wrap;
+        }
+        .section-head h2 {
+          font-size: 42px;
+        }
+        .feature-copy {
+          padding: 24px;
+        }
+        .connection-switcher {
+          margin: auto 16px 16px;
+        }
+        .mini-command {
+          margin: auto 16px 16px;
+        }
+        .row-relations-panel {
+          margin: auto 16px 16px;
+        }
+        .feature-card.large,
+        .feature-card.tall {
+          min-height: 430px;
+        }
+        .relation-visual {
+          inset: 168px 16px 20px;
+          grid-template-columns: 1fr 38px 1fr;
+        }
+        .relation-node-row {
+          grid-template-columns: 50px 1fr;
+          padding-inline: 8px;
+        }
+        .relation-bridge span {
+          font-size: 0;
+          padding: 5px;
+        }
+        .relation-bridge span::after {
+          content: "→";
+          font-size: 9px;
+        }
+        .flow-step {
+          grid-template-columns: 44px 1fr;
+        }
+        .flow-artifact {
+          grid-column: 2;
+          width: 100%;
+          max-width: none;
+          justify-self: stretch;
+        }
+        .download-card {
+          padding: 64px 18px;
+        }
+        .local-first-visual {
+          margin-top: 0;
+        }
+        .footer-links {
+          gap: 15px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+        .reveal {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+
+    <div class="nav-wrap">
+      <nav class="container" aria-label="Main navigation">
+        <a class="brand" href="#top" aria-label="DataHop home">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="./assets/datahop-mark.svg" alt="" />
+          </span>
+          <span>DataHop</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#workflow">How it works</a>
+          <a
+            href="https://github.com/wbenafi/datahop-releases/releases"
+            target="_blank"
+            rel="noreferrer"
+            >Releases</a
+          ><a href="https://github.com/wbenafi" target="_blank" rel="noreferrer"
+            >Creator</a
+          >
+        </div>
+        <a
+          class="button primary small nav-download"
+          href="https://github.com/wbenafi/datahop-releases/releases/tag/v0.1.0-beta.1"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 17 17 7M8 7h9v9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>Get the beta</span>
+        </a>
+      </nav>
+    </div>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <div class="pill">
+              <span class="pulse-dot"></span> Public beta · macOS
+            </div>
+            <h1>See the <em>full story</em> behind every record.</h1>
+            <p>
+              DataHop is a local-first PostgreSQL desktop explorer. Find the
+              record you need, follow its foreign keys like links, and keep
+              moving without writing a join for every question.
+            </p>
+            <div class="hero-actions">
+              <a
+                class="button primary"
+                href="https://github.com/wbenafi/datahop-releases/releases/tag/v0.1.0-beta.1"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M7 17 17 7M8 7h9v9"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Download the macOS beta</span>
+              </a>
+              <button class="button secondary js-open-command" type="button">
+                Try quick jump
+                <span><kbd>⌘</kbd> <kbd>K</kbd></span>
+              </button>
+            </div>
+            <div class="download-meta">
+              <span>Built for PostgreSQL</span>
+              <span>Local-first</span>
+              <span>Safe visual explorer + SQL console</span>
+            </div>
+          </div>
+
+          <figure class="app-stage reveal" aria-label="DataHop product preview">
+            <div class="app-window">
+              <img
+                class="app-screenshot"
+                src="./assets/datahop-app.webp"
+                width="2998"
+                height="1914"
+                draggable="false"
+                alt="DataHop showing the customers table, saved presets, open SQL queries, row values, and related records."
+              />
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="eyebrow">Designed for momentum</span>
+            <h2>Your database, without the scavenger hunt.</h2>
+            <p>
+              DataHop reduces the tiny navigation costs that break
+              concentration—so the path from “I need that record” to “there it
+              is” stays short.
+            </p>
+          </div>
+
+          <div class="bento">
+            <article class="feature-card large reveal">
+              <div class="feature-copy">
+                <span class="feature-number">01 / RELATION NAVIGATION</span>
+                <h3>Follow foreign keys like links.</h3>
+                <p>
+                  Jump from an order to its customer, then open every payment or
+                  child record that points back—without memorizing the schema or
+                  writing a join.
+                </p>
+              </div>
+              <div class="relation-visual" aria-hidden="true">
+                <div class="relation-node">
+                  <div class="relation-node-head">
+                    <span>▦</span>sales.orders
+                  </div>
+                  <div class="relation-node-row">
+                    <span>id</span><b>8041</b>
+                  </div>
+                  <div class="relation-node-row highlight">
+                    <span>customer_id</span><b>Acme Studio ↗</b>
+                  </div>
+                  <div class="relation-node-row">
+                    <span>status</span><b>paid</b>
+                  </div>
+                </div>
+                <div class="relation-bridge"><span>HOP</span></div>
+                <div class="relation-node">
+                  <div class="relation-node-head">
+                    <span>▦</span>core.customers
+                  </div>
+                  <div class="relation-node-row">
+                    <span>id</span><b>…0001</b>
+                  </div>
+                  <div class="relation-node-row highlight">
+                    <span>name</span><b>Acme Studio</b>
+                  </div>
+                  <div class="relation-node-row">
+                    <span>plan</span><b>enterprise</b>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="feature-card tall quick-jump-card reveal">
+              <div class="feature-copy">
+                <span class="feature-number">02 / QUICK JUMP</span>
+                <h3>Reach anything from the keyboard.</h3>
+                <p>
+                  Open the global palette, type a connection, schema, table,
+                  view, open tab, or action, and hop directly into context.
+                </p>
+              </div>
+              <div class="mini-command" aria-hidden="true">
+                <div class="mini-command-input">
+                  <span>⌕</span
+                  ><span>Search presets, tables, views, or queries…</span
+                  ><kbd>ESC</kbd>
+                </div>
+                <div class="mini-command-section">Recent</div>
+                <div class="mini-command-row selected">
+                  <span class="mini-command-icon">◷</span>
+                  <span class="mini-command-details">
+                    <span class="mini-command-name"
+                      ><strong>audit.order_events</strong><em>Dev</em></span
+                    >
+                    <small>Table</small>
+                  </span>
+                  <span class="mini-command-enter">↵</span>
+                </div>
+                <div class="mini-command-row">
+                  <span class="mini-command-icon">◷</span>
+                  <span class="mini-command-details">
+                    <span class="mini-command-name"
+                      ><strong>sales.orders</strong><em>Dev</em></span
+                    >
+                    <small>Table</small>
+                  </span>
+                  <span class="mini-command-enter">↵</span>
+                </div>
+                <div class="mini-command-divider"></div>
+                <div class="mini-command-section">Actions</div>
+                <div class="mini-command-row">
+                  <span class="mini-command-icon">⌘</span>
+                  <span class="mini-command-details">
+                    <span class="mini-command-name"
+                      ><strong>New SQL query</strong><em>Dev</em></span
+                    >
+                    <small>SQL console</small>
+                  </span>
+                  <span class="mini-command-enter">↵</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="feature-card third reveal">
+              <div class="feature-copy">
+                <span class="feature-number">03 / VISUAL FILTERS</span>
+                <h3>Ask precise questions without composing SQL.</h3>
+                <p>
+                  Build typed conditions with compact filter chips, combine
+                  AND/OR rules, and keep every active constraint visible.
+                </p>
+              </div>
+              <div class="micro-ui" aria-hidden="true">
+                <div class="micro-ui-bar"><i></i><i></i><i></i></div>
+                <div class="micro-ui-line"></div>
+                <div class="micro-ui-line"></div>
+                <div class="micro-ui-line"></div>
+                <div class="micro-ui-line"></div>
+              </div>
+            </article>
+
+            <article class="feature-card third connections-card reveal">
+              <div class="feature-copy">
+                <span class="feature-number">04 / CONNECTIONS</span>
+                <h3>Local, staging, and production stay one hop apart.</h3>
+                <p>
+                  Save multiple PostgreSQL profiles, connect through SSL or a
+                  one-hop SSH tunnel, and always see which environment owns the
+                  current tab.
+                </p>
+              </div>
+              <div class="connection-switcher" aria-hidden="true">
+                <div class="connection-option selected">
+                  <span class="connection-monogram">L</span>
+                  <span class="connection-details">
+                    <strong>Local</strong>
+                    <small>datahop_local · Direct</small>
+                  </span>
+                  <span class="connection-check">✓</span>
+                </div>
+                <div class="connection-option">
+                  <span class="connection-monogram dev">D</span>
+                  <span class="connection-details">
+                    <strong>Dev</strong>
+                    <small>datahop_dev · SSH</small>
+                  </span>
+                  <span></span>
+                </div>
+                <div class="connection-option">
+                  <span class="connection-monogram prod">P</span>
+                  <span class="connection-details">
+                    <strong>Prod</strong>
+                    <small>datahop_prod · SSH</small>
+                  </span>
+                  <span></span>
+                </div>
+                <div class="connection-add">
+                  <span>＋</span><strong>Add connection</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="feature-card third relationships-card reveal">
+              <div class="feature-copy">
+                <span class="feature-number">05 / ROW RELATIONSHIPS</span>
+                <h3>See every relationship for the selected row.</h3>
+                <p>
+                  Choose a row and DataHop maps what it belongs to, what points
+                  back, and where you can jump next—without writing a join.
+                </p>
+              </div>
+              <div class="row-relations-panel" aria-hidden="true">
+                <strong class="row-relations-title">Relationships</strong>
+                <span class="row-relations-label">Related to</span>
+                <div class="row-relation-item">
+                  <span class="row-relation-mark">C</span>
+                  <span class="row-relation-details">
+                    <strong>core.customers</strong>
+                    <small>customer_id → id</small>
+                  </span>
+                  <span class="row-relation-end">↗</span>
+                </div>
+                <span class="row-relations-label">Referenced by</span>
+                <div class="row-relation-item">
+                  <span class="row-relation-mark">A</span>
+                  <span class="row-relation-details">
+                    <strong>audit.order_events</strong>
+                    <small>order_id → id · 3 rows</small>
+                  </span>
+                  <span class="row-relation-end">
+                    <span class="row-relation-count">3</span><span>↗</span>
+                  </span>
+                </div>
+                <div class="row-relation-item">
+                  <span class="row-relation-mark">B</span>
+                  <span class="row-relation-details">
+                    <strong>billing.payments</strong>
+                    <small>order_id → id · 1 row</small>
+                  </span>
+                  <span class="row-relation-end">
+                    <span class="row-relation-count">1</span><span>↗</span>
+                  </span>
+                </div>
+              </div>
+            </article>
+
+            <article class="feature-card wide reveal">
+              <div class="feature-copy">
+                <span class="feature-number">06 / LOCAL-FIRST BY DESIGN</span>
+                <h3>Connect directly to PostgreSQL.</h3>
+                <p>
+                  DataHop talks directly to PostgreSQL from an isolated desktop
+                  worker. Credentials use the operating system's secure store,
+                  and diagnostics are local and redacted.
+                </p>
+              </div>
+              <div class="local-first-visual" aria-hidden="true">
+                <span>Your computer</span><i></i><strong>PostgreSQL</strong
+                ><small>No DataHop cloud in the middle</small>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="dark-band" id="workflow">
+        <div class="container flow-grid">
+          <div class="flow-copy reveal">
+            <span class="eyebrow">A shorter path</span>
+            <h2>From one record to the full story, in a few clean hops.</h2>
+            <p>
+              DataHop is organized around the real investigation loop: find a
+              record, follow its relationships, inspect the connected records,
+              and return without losing your path.
+            </p>
+          </div>
+          <div class="flow-steps">
+            <div class="flow-path-head">
+              <span>Investigation trail</span
+              ><small>datahop_dev · PostgreSQL</small>
+            </div>
+            <div class="flow-step reveal">
+              <span class="flow-step-icon">01</span
+              ><span
+                ><strong>Jump to the starting point</strong
+                ><span
+                  >Find the right connection, table, or open tab with ⌘K / Ctrl
+                  K.</span
+                ></span
+              ><span class="flow-artifact"
+                ><kbd>⌘ K</kbd><small>sales.orders</small></span
+              >
+            </div>
+            <div class="flow-step reveal">
+              <span class="flow-step-icon">02</span
+              ><span
+                ><strong>Find the record</strong
+                ><span
+                  >Use typed visual filters, ordering, or Custom SQL
+                  predicates.</span
+                ></span
+              ><span class="flow-artifact"
+                ><b>status</b><small>equals · paid</small></span
+              >
+            </div>
+            <div class="flow-step reveal">
+              <span class="flow-step-icon">03</span
+              ><span
+                ><strong>Inspect and follow</strong
+                ><span
+                  >Select a row, then open its parent or the child rows that
+                  reference it.</span
+                ></span
+              ><span class="flow-artifact"
+                ><b>customer_id ↗</b><small>core.customers.id</small></span
+              >
+            </div>
+            <div class="flow-step reveal">
+              <span class="flow-step-icon">04</span
+              ><span
+                ><strong>Keep your trail</strong
+                ><span
+                  >Use Back and Forward without losing loaded rows, selection,
+                  or scroll position.</span
+                ></span
+              ><span class="flow-artifact"
+                ><b>← Back</b><small>orders / 8041</small></span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="download" id="get-started">
+        <div class="container">
+          <div class="download-card reveal">
+            <div class="download-logo">
+              <img src="./assets/datahop-mark.svg" alt="" />
+            </div>
+            <h2>Start following the full story.</h2>
+            <p>
+              DataHop's macOS beta is ready to download. Choose the build that
+              matches your Mac and start exploring PostgreSQL.
+            </p>
+            <div class="download-actions">
+              <a
+                class="button primary"
+                href="https://github.com/wbenafi/datahop-releases/releases/download/v0.1.0-beta.1/DataHop-0.1.0-beta.1-mac-arm64.dmg"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M7 17 17 7M8 7h9v9"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Apple silicon</span>
+              </a>
+              <a
+                class="button secondary"
+                href="https://github.com/wbenafi/datahop-releases/releases/download/v0.1.0-beta.1/DataHop-0.1.0-beta.1-mac-x64.dmg"
+                target="_blank"
+                rel="noreferrer"
+                >Intel Mac</a
+              >
+            </div>
+            <div class="download-note">
+              Beta release · Apple silicon and Intel builds available
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-inner">
+        <a class="brand" href="#top"
+          ><span
+            class="brand-mark"
+            style="width: 31px; height: 31px; border-radius: 9px"
+            ><img src="./assets/datahop-mark.svg" alt="" /></span
+          ><span>DataHop</span></a
+        >
+        <span>Built for faster database navigation.</span>
+        <div class="footer-links">
+          <a href="#features">Features</a><a href="#workflow">Workflow</a
+          ><a
+            href="https://github.com/wbenafi/datahop-releases/releases"
+            target="_blank"
+            rel="noreferrer"
+            >Releases</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <div
+      class="command-backdrop"
+      id="commandBackdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quick jump"
+      aria-hidden="true"
+      inert
+    >
+      <div class="command-modal">
+        <div class="command-input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="m20 20-4-4"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <input
+            id="commandSearch"
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="commandList"
+            aria-expanded="false"
+            placeholder="Search presets, tables, views, or queries…"
+            aria-label="Quick jump search"
+          />
+          <kbd>ESC</kbd>
+        </div>
+        <div
+          class="command-list"
+          id="commandList"
+          role="listbox"
+          aria-label="Quick jump results"
+        >
+          <section class="command-group" aria-labelledby="commandRecent">
+            <div class="command-section" id="commandRecent">Recent</div>
+            <button
+              class="command-item active"
+              data-command="audit.order_events"
+              type="button"
+            >
+              <span class="command-item-icon">◷</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>audit.order_events</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="sales.orders"
+              type="button"
+            >
+              <span class="command-item-icon">◷</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>sales.orders</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="sales.order_items"
+              type="button"
+            >
+              <span class="command-item-icon">◷</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>sales.order_items</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="core.customers"
+              type="button"
+            >
+              <span class="command-item-icon">◷</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>core.customers</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+          </section>
+
+          <section class="command-group" aria-labelledby="commandActions">
+            <div class="command-section" id="commandActions">Actions</div>
+            <button
+              class="command-item"
+              data-command="new connection"
+              type="button"
+            >
+              <span class="command-item-icon">＋</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>New connection</strong></span
+                >
+                <small>Add a saved PostgreSQL connection</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="new sql query"
+              type="button"
+            >
+              <span class="command-item-icon">⌘</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>New SQL query</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>SQL console</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="disconnect dev"
+              type="button"
+            >
+              <span class="command-item-icon">⌁</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>Disconnect Dev</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>datahop_dev</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="connect prod"
+              type="button"
+            >
+              <span class="command-item-icon">⌁</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>Connect to Prod</strong
+                  ><span class="command-badge prod">Prod</span></span
+                >
+                <small>datahop_prod · SSH</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="focus local"
+              type="button"
+            >
+              <span class="command-item-icon">◎</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>Focus Local</strong
+                  ><span class="command-badge local">Local</span></span
+                >
+                <small>Open connection</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="toggle color theme"
+              type="button"
+            >
+              <span class="command-item-icon">◐</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>Toggle color theme</strong></span
+                >
+                <small>Application action</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+          </section>
+
+          <section class="command-group" aria-labelledby="commandTables">
+            <div class="command-section" id="commandTables">Tables</div>
+            <button
+              class="command-item"
+              data-command="audit.order_events"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>audit.order_events</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="billing.payments"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>billing.payments</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="core.customer_sites"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>core.customer_sites</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="core.customers"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>core.customers</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="sales.order_items"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>sales.order_items</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+            <button
+              class="command-item"
+              data-command="sales.orders"
+              type="button"
+            >
+              <span class="command-item-icon">▦</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>sales.orders</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>Table</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+          </section>
+
+          <section class="command-group" aria-labelledby="commandPresets">
+            <div class="command-section" id="commandPresets">Saved presets</div>
+            <button
+              class="command-item"
+              data-command="active customers"
+              type="button"
+            >
+              <span class="command-item-icon">▱</span>
+              <span class="command-item-copy">
+                <span class="command-item-title"
+                  ><strong>Active Customers</strong
+                  ><span class="command-badge">Dev</span></span
+                >
+                <small>core.customers</small>
+              </span>
+              <span class="command-enter">↵</span>
+            </button>
+          </section>
+          <div class="command-empty" id="commandEmpty">
+            No destinations match that search.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const appWindow = document.querySelector(".app-window");
+      const appStage = document.querySelector(".app-stage");
+      const commandBackdrop = document.getElementById("commandBackdrop");
+      const commandSearch = document.getElementById("commandSearch");
+      const commandList = document.getElementById("commandList");
+      const commandItems = [...document.querySelectorAll(".command-item")];
+      const commandGroups = [...document.querySelectorAll(".command-group")];
+      const commandEmpty = document.getElementById("commandEmpty");
+      let previouslyFocused;
+
+      appWindow.append(commandBackdrop);
+      commandItems.forEach((item, index) => {
+        item.id = `command-option-${index}`;
+        item.setAttribute("role", "option");
+        item.setAttribute("aria-selected", "false");
+      });
+
+      function sizeCommandPalette() {
+        const width = appWindow.clientWidth;
+        commandBackdrop.style.setProperty(
+          "--overlay-center-x",
+          `${width / 2}px`,
+        );
+        commandBackdrop.style.setProperty(
+          "--overlay-width",
+          `${Math.min(720, Math.max(280, width - 28))}px`,
+        );
+      }
+
+      function openCommand() {
+        previouslyFocused = document.activeElement;
+        appStage.classList.add("visible");
+        appStage.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "auto"
+            : "smooth",
+          block: "center",
+        });
+        sizeCommandPalette();
+        commandBackdrop.inert = false;
+        commandBackdrop.setAttribute("aria-hidden", "false");
+        commandBackdrop.classList.add("open");
+        commandSearch.setAttribute("aria-expanded", "true");
+        commandSearch.value = "";
+        commandList.scrollTop = 0;
+        filterCommands("");
+        requestAnimationFrame(() =>
+          commandSearch.focus({ preventScroll: true }),
+        );
+      }
+
+      function closeCommand() {
+        if (!commandBackdrop.classList.contains("open")) return;
+        commandBackdrop.classList.remove("open");
+        commandBackdrop.inert = true;
+        commandBackdrop.setAttribute("aria-hidden", "true");
+        commandSearch.setAttribute("aria-expanded", "false");
+        commandSearch.removeAttribute("aria-activedescendant");
+        previouslyFocused?.focus({ preventScroll: true });
+      }
+
+      function visibleCommandItems() {
+        return commandItems.filter((item) => item.style.display !== "none");
+      }
+
+      function setActiveCommand(item, scroll = true) {
+        commandItems.forEach((candidate) => {
+          const active = candidate === item;
+          candidate.classList.toggle("active", active);
+          candidate.setAttribute("aria-selected", String(active));
+        });
+
+        if (!item) {
+          commandSearch.removeAttribute("aria-activedescendant");
+          return;
+        }
+
+        commandSearch.setAttribute("aria-activedescendant", item.id);
+        if (scroll) item.scrollIntoView({ block: "nearest" });
+      }
+
+      function filterCommands(value) {
+        const term = value.toLowerCase().trim();
+        commandItems.forEach((item) => {
+          const matches = item.textContent.toLowerCase().includes(term);
+          item.style.display = matches ? "" : "none";
+        });
+
+        commandGroups.forEach((group) => {
+          group.hidden = ![...group.querySelectorAll(".command-item")].some(
+            (item) => item.style.display !== "none",
+          );
+        });
+
+        const visible = visibleCommandItems();
+        setActiveCommand(visible[0] || null, false);
+        commandEmpty.style.display = visible.length ? "none" : "block";
+      }
+
+      function moveCommandSelection(direction) {
+        const visible = visibleCommandItems();
+        if (!visible.length) return;
+        const current = visible.findIndex((item) =>
+          item.classList.contains("active"),
+        );
+        const next =
+          current < 0
+            ? 0
+            : (current + direction + visible.length) % visible.length;
+        setActiveCommand(visible[next]);
+      }
+
+      function runCommand(item) {
+        if (!item) return;
+        closeCommand();
+      }
+
+      document
+        .querySelectorAll(".js-open-command")
+        .forEach((button) => button.addEventListener("click", openCommand));
+      window.addEventListener("resize", sizeCommandPalette);
+      commandBackdrop.addEventListener("click", (event) => {
+        if (event.target === commandBackdrop) closeCommand();
+      });
+      commandSearch.addEventListener("input", (event) =>
+        filterCommands(event.target.value),
+      );
+      commandItems.forEach((item) => {
+        item.addEventListener("mouseenter", () =>
+          setActiveCommand(item, false),
+        );
+        item.addEventListener("focus", () => setActiveCommand(item, false));
+        item.addEventListener("click", () => runCommand(item));
+      });
+      document.addEventListener("keydown", (event) => {
+        if (
+          (event.metaKey || event.ctrlKey) &&
+          event.key.toLowerCase() === "k"
+        ) {
+          event.preventDefault();
+          openCommand();
+          return;
+        }
+
+        if (!commandBackdrop.classList.contains("open")) return;
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeCommand();
+        }
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          moveCommandSelection(1);
+        }
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          moveCommandSelection(-1);
+        }
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runCommand(
+            commandItems.find((item) => item.classList.contains("active")),
+          );
+        }
+      });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12 },
+      );
+      document
+        .querySelectorAll(".reveal")
+        .forEach((element) => observer.observe(element));
+    </script>
+  </body>
+</html>
