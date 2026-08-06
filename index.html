@@ -1131,6 +1131,84 @@
         font-size: 8px;
       }
 
+      .feedback {
+        padding: 112px 0 0;
+      }
+      .feedback-card {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+        align-items: center;
+        gap: clamp(44px, 7vw, 88px);
+        padding: clamp(36px, 6vw, 72px);
+        border: 1px solid #d2ddd6;
+        border-radius: var(--radius-lg);
+        background:
+          radial-gradient(
+            circle at 96% 0%,
+            rgba(94, 146, 123, 0.15),
+            transparent 34%
+          ),
+          rgba(255, 255, 255, 0.68);
+        box-shadow: var(--shadow-sm);
+      }
+      .feedback-copy h2 {
+        max-width: 620px;
+        margin: 14px 0 18px;
+        font-size: clamp(38px, 5vw, 58px);
+        line-height: 1.02;
+        letter-spacing: -0.052em;
+      }
+      .feedback-copy p {
+        max-width: 570px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.7;
+      }
+      .feedback-action {
+        margin-top: 28px;
+      }
+      .feedback-options {
+        display: grid;
+        gap: 12px;
+      }
+      .feedback-option {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 15px;
+        align-items: start;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+      .feedback-option-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        color: var(--green-800);
+        background: var(--mint);
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .feedback-option.bug .feedback-option-icon {
+        color: #9a4f47;
+        background: #f7e9e6;
+      }
+      .feedback-option strong {
+        display: block;
+        margin: 1px 0 5px;
+        font-size: 15px;
+      }
+      .feedback-option p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
       .download {
         padding: 120px 0 130px;
       }
@@ -1440,6 +1518,9 @@
           grid-template-columns: 1fr;
           gap: 44px;
         }
+        .feedback-card {
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (max-width: 780px) {
@@ -1481,6 +1562,9 @@
         }
         .section {
           padding: 84px 0;
+        }
+        .feedback {
+          padding-top: 84px;
         }
         .feature-card.large,
         .feature-card.tall,
@@ -1568,6 +1652,12 @@
         .download-card {
           padding: 64px 18px;
         }
+        .feedback-card {
+          padding: 34px 22px;
+        }
+        .feedback-action .button {
+          width: 100%;
+        }
         .local-first-visual {
           margin-top: 0;
         }
@@ -1610,6 +1700,7 @@
         <div class="nav-links">
           <a href="#features">Features</a>
           <a href="#workflow">How it works</a>
+          <a href="#feedback">Feedback</a>
           <a
             href="https://github.com/wbenafi/datahop-releases/releases"
             target="_blank"
@@ -2006,6 +2097,77 @@
         </div>
       </section>
 
+      <section class="feedback" id="feedback">
+        <div class="container">
+          <div class="feedback-card reveal">
+            <div class="feedback-copy">
+              <span class="eyebrow">Help shape DataHop</span>
+              <h2>Found something we should fix or improve?</h2>
+              <p>
+                DataHop gets better through real-world feedback. If you run into
+                a bug or have an idea that would make your database workflow
+                smoother, tell us about it on GitHub.
+              </p>
+              <div class="feedback-action">
+                <a
+                  class="button primary"
+                  href="https://github.com/wbenafi/datahop-releases/issues/new"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 8v8M8 12h8"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  <span>Create a GitHub issue</span>
+                </a>
+              </div>
+            </div>
+            <div class="feedback-options">
+              <article class="feedback-option bug">
+                <span class="feedback-option-icon" aria-hidden="true">!</span>
+                <div>
+                  <strong>Report a bug</strong>
+                  <p>
+                    Share what happened, what you expected, and the DataHop and
+                    macOS versions you were using. Screenshots and repeatable
+                    steps are especially helpful.
+                  </p>
+                </div>
+              </article>
+              <article class="feedback-option">
+                <span class="feedback-option-icon" aria-hidden="true">+</span>
+                <div>
+                  <strong>Suggest an enhancement</strong>
+                  <p>
+                    Describe the workflow you want to improve and how the idea
+                    would help. Concrete examples make it easier to understand
+                    and prioritize.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="download" id="get-started">
         <div class="container">
           <div class="download-card reveal">
@@ -2069,6 +2231,7 @@
         <span>Built for faster database navigation.</span>
         <div class="footer-links">
           <a href="#features">Features</a><a href="#workflow">Workflow</a
+          ><a href="#feedback">Feedback</a
           ><a
             href="https://github.com/wbenafi/datahop-releases/releases"
             target="_blank"
